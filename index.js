@@ -58,11 +58,11 @@ async function main() {
     })
 
     console.log(
-      `There are ${
+      `\nThere are ${
         smallStreams.length
       } english streams between ${minViewers} and ${maxViewers} right now.`
     )
-    console.log(`That will probably take around ${Math.ceil(smallStreams.length / 30)} minutes`)
+    console.log(`That will probably take around ${Math.floor(smallStreams.length / 30)} minutes`)
 
     const allUserIds = _.map(smallStreams, 'user_id')
     const allGameIds = _.uniq(_.map(smallStreams, 'game_id'))
