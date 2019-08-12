@@ -21,6 +21,8 @@ const options = {
   },
 }
 
+let spinner
+
 main()
 async function main() {
   try {
@@ -48,7 +50,8 @@ async function main() {
 
     options.headers['Client-ID'] = token
 
-    const spinner = ora('Hitting twitch API a bunch').start()
+    spinner = ora('Hitting twitch API a bunch').start()
+    spinner.spinner = 'shark'
     const allStreams = await getAllStreams(minViewers)
     const smallStreams = _.filter(allStreams, ({ viewer_count }) => {
       return viewer_count >= minViewers && viewer_count <= maxViewers
@@ -77,10 +80,13 @@ async function main() {
     })
 
     const csv = parse(csvData)
+    const targetPath = path.join(process.cwd(), outputFile)
+    fs.writeFileSync(targetPath, csv)
     spinner.stop()
-    fs.writeFileSync(path.join(process.cwd(), outputFile), csv)
+    console.log(`\nCSV successfully written to ${targetPath}`)
   } catch (err) {
-    console.log('err: ', err)
+    console.log('err: ', err.message)
+    process.exit(1)
   }
 }
 
@@ -137,7 +143,7 @@ async function getAllStreams(minViewers, cursor = '', allStreams = [], count = 0
     return allStreams
   }
   if (pagination.cursor) {
-    return getAllStreams(pagination.cursor, allStreams, count + 1)
+    return getAllStreams(minViewers, pagination.cursor, allStreams, count + 1)
   }
   return allStreams
 }
@@ -145,9 +151,13 @@ async function getAllStreams(minViewers, cursor = '', allStreams = [], count = 0
 async function delayIfRateLimited(headers) {
   if (headers['ratelimit-remaining'] <= 1) {
     const millisecondsToWait = headers['ratelimit-reset'] * 1000 - Date.now()
-    console.log(
-      `Hit our rate limit, waiting for ${millisecondsToWait / 1000} seconds for limit to reset`
-    )
+    spinner.text = `Hit our rate limit, waiting for ${millisecondsToWait /
+      1000} seconds for limit to reset`
+    spinner.spinner = 'clock'
+    spinner.color = 'red'
     await delay(millisecondsToWait)
+    spinner.text = 'Hitting twitch API a bunch'
+    spinner.spinner = 'shark'
+    spinner.color = 'blue'
   }
 }
