@@ -2,13 +2,15 @@
 
 const _ = require('lodash')
 const fs = require('fs')
+const ora = require('ora')
 const path = require('path')
 const axios = require('axios')
 const delay = require('util').promisify(setTimeout)
 const { parse } = require('json2csv')
 const prompts = require('prompts')
-const ora = require('ora')
+require('dotenv').config()
 
+const { CLIENT_ID, MIN_VIEWERS, MAX_VIEWERS, FILENAME } = process.env
 const baseURL = 'https://api.twitch.tv/helix'
 
 const options = {
@@ -26,27 +28,35 @@ let spinner
 main()
 async function main() {
   try {
-    const { minViewers } = await prompts({
-      type: 'number',
-      name: 'minViewers',
-      message: 'Min Viewer Count',
-    })
-    const { maxViewers } = await prompts({
-      type: 'number',
-      name: 'maxViewers',
-      message: 'Max Viewer Count',
-    })
-    const { outputFile } = await prompts({
-      type: 'text',
-      name: 'outputFile',
-      message: 'Output filename',
-      validate: value => (!value.endsWith('.csv') ? `filename must end in ".csv"` : true),
-    })
-    const { token } = await prompts({
-      type: 'text',
-      name: 'token',
-      message: 'Twitch API Token',
-    })
+    const { minViewers } = MIN_VIEWERS
+      ? { minViewers: MIN_VIEWERS }
+      : await prompts({
+          type: 'number',
+          name: 'minViewers',
+          message: 'Min Viewer Count',
+        })
+    const { maxViewers } = MAX_VIEWERS
+      ? { maxViewers: MAX_VIEWERS }
+      : await prompts({
+          type: 'number',
+          name: 'maxViewers',
+          message: 'Max Viewer Count',
+        })
+    const { outputFile } = FILENAME
+      ? { outputFile: FILENAME }
+      : await prompts({
+          type: 'text',
+          name: 'outputFile',
+          message: 'Output filename',
+          validate: value => (!value.endsWith('.csv') ? `filename must end in ".csv"` : true),
+        })
+    const { token } = CLIENT_ID
+      ? { token: CLIENT_ID }
+      : await prompts({
+          type: 'text',
+          name: 'token',
+          message: 'Twitch API Token',
+        })
 
     options.headers['Client-ID'] = token
 
