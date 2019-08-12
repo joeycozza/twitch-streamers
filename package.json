@@ -1,6 +1,6 @@
 {
   "name": "twitch-streamers",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Get info on twitch streamers between a certain number of current viewers",
   "files": [
     "index.js"
