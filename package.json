@@ -1,14 +1,23 @@
 {
   "name": "twitch-streamers",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Get info on twitch streamers between a certain number of current viewers",
-  "files": ["index.js"],
+  "files": [
+    "index.js"
+  ],
   "main": "index.js",
+  "bin": {
+    "streamers": "./index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ."
   },
-  "keywords": ["twitch", "streamers", "games"],
+  "keywords": [
+    "twitch",
+    "streamers",
+    "games"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
