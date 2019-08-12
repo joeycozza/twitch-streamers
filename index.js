@@ -51,11 +51,18 @@ async function main() {
     options.headers['Client-ID'] = token
 
     spinner = ora('Hitting twitch API a bunch').start()
-    spinner.spinner = 'shark'
+    spinner.spinner = 'circle'
     const allStreams = await getAllStreams(minViewers)
     const smallStreams = _.filter(allStreams, ({ viewer_count }) => {
       return viewer_count >= minViewers && viewer_count <= maxViewers
     })
+
+    console.log(
+      `There are ${
+        smallStreams.length
+      } english streams between ${minViewers} and ${maxViewers} right now.`
+    )
+    console.log(`That will probably take around ${Math.ceil(smallStreams.length / 30)} minutes`)
 
     const allUserIds = _.map(smallStreams, 'user_id')
     const allGameIds = _.uniq(_.map(smallStreams, 'game_id'))
@@ -157,7 +164,7 @@ async function delayIfRateLimited(headers) {
     spinner.color = 'red'
     await delay(millisecondsToWait)
     spinner.text = 'Hitting twitch API a bunch'
-    spinner.spinner = 'shark'
+    spinner.spinner = 'dots'
     spinner.color = 'blue'
   }
 }
