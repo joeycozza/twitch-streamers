@@ -4,21 +4,15 @@ const path = require('path')
 const axios = require('axios')
 const delay = require('util').promisify(setTimeout)
 const { parse } = require('json2csv')
+const prompts = require('prompts')
+const ora = require('ora')
 
-// TODO: JOEY get input for min and max number of current viewers
-// TODO: JOEY get name of output file
-
-const token = 't6fn7nqdq0cpjmzjt52u28duznl1nx'
 const baseURL = 'https://api.twitch.tv/helix'
-const maxViewers = 101
-const minViewers = 97
 
 const options = {
   method: 'GET',
   baseURL,
-  headers: {
-    'Client-ID': token,
-  },
+  headers: {},
   params: {
     language: 'en',
     first: 100,
@@ -28,13 +22,36 @@ const options = {
 main()
 async function main() {
   try {
-    const allStreams = await getAllStreams()
-    console.log('allStreams.length: ', allStreams.length)
+    const { minViewers } = await prompts({
+      type: 'number',
+      name: 'minViewers',
+      message: 'Min Viewer Count',
+    })
+    const { maxViewers } = await prompts({
+      type: 'number',
+      name: 'maxViewers',
+      message: 'Max Viewer Count',
+    })
+    const { outputFile } = await prompts({
+      type: 'text',
+      name: 'outputFile',
+      message: 'Output filename',
+      validate: value => (!value.endsWith('.csv') ? `filename must end in ".csv"` : true),
+    })
+    const { token } = await prompts({
+      type: 'text',
+      name: 'token',
+      message: 'Twitch API Token',
+    })
+
+    options.headers['Client-ID'] = token
+
+    const spinner = ora('Hitting twitch API a bunch').start()
+    const allStreams = await getAllStreams(minViewers)
     const smallStreams = _.filter(allStreams, ({ viewer_count }) => {
       return viewer_count >= minViewers && viewer_count <= maxViewers
     })
 
-    console.log('smallStreams.length: ', smallStreams.length)
     const allUserIds = _.map(smallStreams, 'user_id')
     const allGameIds = _.uniq(_.map(smallStreams, 'game_id'))
 
@@ -58,9 +75,8 @@ async function main() {
     })
 
     const csv = parse(csvData)
-    console.log(csv)
-    fs.writeFileSync(path.join(process.cwd(), 'mycsv.csv'), csv)
-    // TODO: JOEY output to csv file
+    spinner.stop()
+    fs.writeFileSync(path.join(process.cwd(), outputFile), csv)
   } catch (err) {
     console.log('err: ', err)
   }
@@ -101,9 +117,8 @@ async function getInfoByIds(allIds, endpoint) {
 /**
  * This will paginate through all streams and stop paginating after the viewer count is lower than the minimum we care about
  */
-async function getAllStreams(cursor = '', allStreams = [], count = 0) {
+async function getAllStreams(minViewers, cursor = '', allStreams = [], count = 0) {
   options.url = `streams`
-  console.log('count: ', count)
   if (count === 100) {
     console.log('Got 10,000 total streams...bailing now...')
     return allStreams

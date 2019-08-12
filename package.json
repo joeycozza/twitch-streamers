@@ -1,18 +1,21 @@
 {
   "name": "twitch-streamers",
   "version": "1.0.0",
-  "description": "",
+  "description": "Get info on twitch streamers between a certain number of current viewers",
+  "files": ["index.js"],
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "node ."
   },
-  "keywords": [],
+  "keywords": ["twitch", "streamers", "games"],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.0",
     "json2csv": "^4.5.2",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.15",
+    "ora": "^3.4.0",
+    "prompts": "^2.2.1"
   }
 }
